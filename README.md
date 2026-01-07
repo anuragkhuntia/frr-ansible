@@ -56,6 +56,7 @@ frr_hosts:
   - UP (active)
   - NOT part of a bond
   - NOT loopback
+  - NO IP address assigned
 
 ## Usage
 
@@ -74,7 +75,7 @@ ansible-playbook -i inventory.ini main.yml --tags discover --limit z1scuti03
 **Output shows:**
 - All network interfaces
 - Bonded interfaces (excluded)
-- Eligible interfaces (UP and not bonded)
+- Eligible interfaces (UP, not bonded, no IP)
 - Which interfaces will be auto-selected (first 2 eligible)
 
 ### 1. Update Inventory
@@ -181,6 +182,7 @@ The playbook configures:
    - Not loopback (`lo`)
    - Not part of a bond
    - Not `bonding_masters`
+   - No IPv4 address assigned
 4. **Auto-select**: Uses first 2 eligible interfaces if not defined in vars
 
 ### Manual Override

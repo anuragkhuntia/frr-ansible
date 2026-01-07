@@ -47,6 +47,7 @@
             | rejectattr('device', 'in', bonded_interfaces)
             | selectattr('active', 'defined')
             | selectattr('active', 'equalto', true)
+            | rejectattr('ipv4', 'defined')
             | map(attribute='device')
             | list
           }}
@@ -56,7 +57,7 @@
         msg:
           - "========================================="
           - "Host: {{ inventory_hostname }}"
-          - "Eligible interfaces (UP, not bonded): {{ eligible_interfaces }}"
+          - "Eligible interfaces (UP, not bonded, no IP): {{ eligible_interfaces }}"
           - "First interface: {{ eligible_interfaces[0] | default('NONE') }}"
           - "Second interface: {{ eligible_interfaces[1] | default('NONE') }}"
           - "========================================="
@@ -111,13 +112,14 @@
             | rejectattr('device', 'in', bonded_interfaces)
             | selectattr('active', 'defined')
             | selectattr('active', 'equalto', true)
+            | rejectattr('ipv4', 'defined')
             | map(attribute='device')
             | list
           }}
 
     - name: Display discovered interfaces
       debug:
-        msg: "Eligible interfaces found: {{ eligible_interfaces }}"
+        msg: "Eligible interfaces found (UP, not bonded, no IP): {{ eligible_interfaces }}"
 
     - name: Auto-select interfaces if not defined in vars
       set_fact:
