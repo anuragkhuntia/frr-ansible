@@ -1,0 +1,84 @@
+---
+# Playbook to discover and display eligible network interfaces
+# Use this to identify interfaces before deploying FRR
+
+- name: Discover Network Interfaces
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Get list of bonded interfaces
+      shell: |
+        if [ -d /sys/class/net/bonding_masters ]; then
+          cat /proc/net/bonding/bond* 2>/dev/null | grep "Slave Interface" | awk '{print $3}' || true
+        fi
+      register: bonded_interfaces_raw
+      changed_when: false
+      failed_when: false
+
+    - name: Set bonded interfaces list
+      set_fact:
+        bonded_interfaces: "{{ bonded_interfaces_raw.stdout_lines | default([]) }}"
+
+    - name: Display all network interfaces
+      debug:
+        msg: "All interfaces: {{ ansible_interfaces }}"
+
+    - name: Display bonded interfaces
+      debug:
+        msg: "Bonded interfaces (excluded): {{ bonded_interfaces }}"
+
+    - name: Gather detailed interface information
+      set_fact:
+        interface_details: >-
+          {{
+            ansible_interfaces 
+            | map('regex_replace', '^(.*)$', 'ansible_' + '\1')
+            | map('extract', hostvars[inventory_hostname])
+            | selectattr('type', 'defined')
+            | list
+          }}
+
+    - name: Display all interface details
+      debug:
+        msg: "{{ item }}"
+      loop: "{{ interface_details }}"
+      loop_control:
+        label: "{{ item.device | default('unknown') }}"
+
+    - name: Identify eligible interfaces (UP and not bonded)
+      set_fact:
+        eligible_interfaces: >-
+          {{
+            ansible_interfaces 
+            | map('regex_replace', '^(.*)$', 'ansible_' + '\1')
+            | map('extract', hostvars[inventory_hostname])
+            | selectattr('type', 'defined')
+            | rejectattr('device', 'in', ['lo', 'bonding_masters'])
+            | rejectattr('device', 'in', bonded_interfaces)
+            | selectattr('active', 'defined')
+            | selectattr('active', 'equalto', true)
+            | map(attribute='device')
+            | list
+          }}
+
+    - name: Display eligible interfaces summary
+      debug:
+        msg:
+          - "========================================="
+          - "Host: {{ inventory_hostname }}"
+          - "Eligible interfaces (UP, not bonded): {{ eligible_interfaces }}"
+          - "First interface: {{ eligible_interfaces[0] | default('NONE') }}"
+          - "Second interface: {{ eligible_interfaces[1] | default('NONE') }}"
+          - "========================================="
+
+    - name: Check if sufficient interfaces are available
+      debug:
+        msg: "✓ Found {{ eligible_interfaces | length }} eligible interfaces - sufficient for FRR deployment"
+      when: eligible_interfaces | length >= 2
+
+    - name: Warn if insufficient interfaces
+      debug:
+        msg: "✗ WARNING: Only {{ eligible_interfaces | length }} eligible interface(s) found. Need at least 2 for FRR."
+      when: eligible_interfaces | length < 2

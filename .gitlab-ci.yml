@@ -28,7 +28,7 @@ default:
 syntax-check:
   stage: validate
   script:
-    - ansible-playbook -i inventory.ini deploy_frr.yml --syntax-check
+    - ansible-playbook -i inventory.ini main.yml --syntax-check
   tags:
     - docker
 
@@ -46,7 +46,7 @@ yaml-lint:
 ansible-lint:
   stage: validate
   script:
-    - ansible-lint deploy_frr.yml || true
+    - ansible-lint main.yml || true
   allow_failure: true
   tags:
     - docker
@@ -55,7 +55,7 @@ ansible-lint:
 dry-run:
   stage: test
   script:
-    - ansible-playbook -i inventory.ini deploy_frr.yml --check --diff
+    - ansible-playbook -i inventory.ini main.yml --check --diff
   when: manual
   tags:
     - docker
@@ -69,7 +69,7 @@ deploy-single-host:
         echo "ERROR: TARGET_HOST variable not set"
         exit 1
       fi
-    - ansible-playbook -i inventory.ini deploy_frr.yml --limit "$TARGET_HOST" --check --diff
+    - ansible-playbook -i inventory.ini main.yml --limit "$TARGET_HOST" --check --diff
   when: manual
   variables:
     TARGET_HOST: ""
@@ -81,7 +81,7 @@ deploy-staging:
   stage: deploy-staging
   script:
     - echo "Deploying to staging servers..."
-    - ansible-playbook -i inventory.ini deploy_frr.yml --limit "z1scuti03"
+    - ansible-playbook -i inventory.ini main.yml --limit "z1scuti03"
   environment:
     name: staging
     action: start
@@ -97,7 +97,7 @@ deploy-production:
   stage: deploy-production
   script:
     - echo "Deploying to production servers..."
-    - ansible-playbook -i inventory.ini deploy_frr.yml
+    - ansible-playbook -i inventory.ini main.yml
   environment:
     name: production
     action: start
@@ -112,7 +112,7 @@ deploy-production-confirmed:
   stage: deploy-production
   script:
     - echo "Deploying to production with confirmation..."
-    - ansible-playbook -i inventory.ini deploy_frr.yml
+    - ansible-playbook -i inventory.ini main.yml
   environment:
     name: production
     action: start
