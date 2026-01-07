@@ -1,0 +1,20 @@
+---
+# Ansible Lint Configuration
+
+# Exclude paths
+exclude_paths:
+  - .git/
+  - .gitlab-ci.yml
+
+# Enable specific rules
+skip_list:
+  - yaml[line-length]
+  - name[casing]
+
+# Warn instead of error for certain rules
+warn_list:
+  - experimental
+  - role-name
+
+# Use default rules
+use_default_rules: true

@@ -1,0 +1,45 @@
+---
+- name: Deploy FRR Configuration
+  hosts: all
+  become: yes
+  vars_files:
+    - vars/frr_vars.yml
+  
+  tasks:
+    - name: Ensure FRR is installed
+      apt:
+        name: frr
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Deploy FRR configuration
+      template:
+        src: templates/frr.conf.j2
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: '0640'
+        backup: yes
+      notify: Restart FRR
+
+    - name: Enable FRR daemons
+      template:
+        src: templates/daemons.j2
+        dest: /etc/frr/daemons
+        owner: frr
+        group: frr
+        mode: '0640'
+      notify: Restart FRR
+
+    - name: Ensure FRR service is enabled and started
+      systemd:
+        name: frr
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart FRR
+      systemd:
+        name: frr
+        state: restarted

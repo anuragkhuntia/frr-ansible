@@ -1,0 +1,46 @@
+frr version 10.3.1
+frr defaults traditional
+hostname {{ frr_hostname }}
+log syslog informational
+no ipv6 forwarding
+service integrated-vtysh-config
+!
+
+interface {{ frr_interface1 }}
+ ipv6 nd ra-interval 6
+ no ipv6 nd suppress-ra
+exit
+!
+
+interface {{ frr_interface2 }}
+ ipv6 nd ra-interval 6
+ no ipv6 nd suppress-ra
+exit
+!
+
+interface lo
+ ip address {{ frr_loopback_ip }}/32
+exit
+!
+
+router bgp {{ frr_bgp_asn }}
+ bgp router-id {{ frr_loopback_ip }}
+ bgp bestpath as-path multipath-relax
+ neighbor TOR peer-group
+ neighbor TOR remote-as internal
+ neighbor TOR bfd
+ neighbor TOR timers 1 3
+ neighbor {{ frr_interface1 }} interface peer-group TOR
+ neighbor {{ frr_interface2 }} interface peer-group TOR
+ bgp fast-convergence
+ !
+
+ address-family ipv4 unicast
+  network {{ frr_loopback_ip }}/32
+  redistribute kernel
+  redistribute connected
+  neighbor {{ frr_interface1 }} soft-reconfiguration inbound
+  neighbor {{ frr_interface2 }} soft-reconfiguration inbound
+ exit-address-family
+exit
+!
