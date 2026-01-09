@@ -20,9 +20,24 @@
       changed_when: false
       failed_when: false
 
+    - name: Get list of prov_bond child interfaces
+      shell: |
+        if [ -d /sys/class/net ]; then
+          for bond in /sys/class/net/prov_bond*/bonding/slaves 2>/dev/null; do
+            [ -f "$bond" ] && cat "$bond" | tr ' ' '\n'
+          done || true
+        fi
+      register: prov_bond_interfaces_raw
+      changed_when: false
+      failed_when: false
+
     - name: Set bonded interfaces list
       set_fact:
         bonded_interfaces: "{{ bonded_interfaces_raw.stdout_lines | default([]) }}"
+
+    - name: Set prov_bond child interfaces list
+      set_fact:
+        prov_bond_interfaces: "{{ prov_bond_interfaces_raw.stdout_lines | default([]) }}"
 
     - name: Identify eligible interfaces (UP and not bonded)
       set_fact:
@@ -34,6 +49,7 @@
             | selectattr('type', 'defined')
             | rejectattr('device', 'in', ['lo', 'bonding_masters'])
             | rejectattr('device', 'in', bonded_interfaces)
+            | rejectattr('device', 'in', prov_bond_interfaces)
             | selectattr('active', 'defined')
             | selectattr('active', 'equalto', true)
             | map(attribute='device')

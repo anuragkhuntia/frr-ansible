@@ -4,40 +4,12 @@
 # Leave interface1/interface2 undefined to auto-discover interfaces
 
 frr_hosts:
-  z1scuti03:
-    hostname: z1scuti03
-    # interface1: eno5           # Optional: specify interface or leave blank for auto-discovery
-    # interface2: eno7           # Optional: specify interface or leave blank for auto-discovery
-    loopback_ip: 10.30.19.6
-    bgp_asn: 65496
-  
-  z1scuti04:
-    hostname: z1scuti04
-    # interface1: eno5           # Commented out for auto-discovery
-    # interface2: eno7
-    loopback_ip: 10.30.19.7
-    bgp_asn: 65496
-  
-  z1scuti05:
-    hostname: z1scuti05
-    interface1: eno5             # Explicitly defined interfaces
-    interface2: eno7
-    loopback_ip: 10.30.19.8
-    bgp_asn: 65496
-  
-  leaf01:
-    hostname: leaf01
-    # interface1: eth0           # Auto-discover
-    # interface2: eth1
-    loopback_ip: 10.30.20.10
-    bgp_asn: 65497
-  
-  leaf02:
-    hostname: leaf02
-    # interface1: eth0           # Auto-discover
-    # interface2: eth1
-    loopback_ip: 10.30.20.11
-    bgp_asn: 65497
+  # z1scuti03:
+  #   hostname: z1scuti03
+  #   # interface1: eno5           # Optional: specify interface or leave blank for auto-discovery
+  #   # interface2: eno7           # Optional: specify interface or leave blank for auto-discovery
+  #   loopback_ip: 10.30.19.6
+  #   bgp_asn: 65496  
 
 # Extract current host config (do not modify this)
 frr_hostname: "{{ frr_hosts[inventory_hostname].hostname }}"
